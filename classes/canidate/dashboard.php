@@ -172,7 +172,7 @@ if (!function_exists('nokriAPI_candidate_dashboard')) {
         $data['emp_tabs']['post_job'] = __("Post Job", "nokri-rest-api");
         $data['emp_tabs']['pkg_detail'] = __("Package Details", "nokri-rest-api");
         $data['emp_tabs']['buy_package'] = __("Buy Package", "nokri-rest-api");
-        $data['emp_tabs']['cand_search'] = __("Candidate Search", "nokri-rest-api");
+        $data['emp_tabs']['cand_search'] = __("Applicant Search", "nokri-rest-api");
         $data['emp_tabs']['blog'] = __("Blog", "nokri-rest-api");
         $data['emp_tabs']['home'] = __("Home", "nokri-rest-api");
         $data['emp_tabs']['faq'] = __("Faq's", "nokri-rest-api");
@@ -291,10 +291,10 @@ if (!function_exists('nokriAPI_candidate_dashboard')) {
         $data['extra']['not_gallery'] = __("Gallery not available", "nokri-rest-api");
         $data['extra']['settings_txt'] = __("Settings", "nokri-rest-api");
         $data['extra']['place_hldr'] = __("Search job here", "nokri-rest-api");
-        $data['extra']['saved_resumes'] = __("Saved resumes", "nokri-rest-api");
+        $data['extra']['saved_resumes'] = __("Saved Applicants", "nokri-rest-api");
         $data['extra']['view_profile'] = __("View", "nokri-rest-api");
         $data['extra']['remove_resume'] = __("Remove", "nokri-rest-api");
-        $data['extra']['matched_resume'] = __("Matched Resume", "nokri-rest-api");
+        $data['extra']['matched_resume'] = __("Applicants", "nokri-rest-api");
         $data['extra']['log_txt'] = __("Go to login", "nokri-rest-api");
         $data['extra']['Jobs_for'] = __("Jobs for you", "nokri-rest-api");
         $data['extra']['notify_page'] = __("Job notification", "nokri-rest-api");

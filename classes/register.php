@@ -239,9 +239,11 @@ function nokri_get_register_custom_feildsApi($author_id = '',$feilds_for = '',$i
     function nokriAPI_register_me_post( $request ) {		
 		
 		global $nokri;
-		$json_data = $request->get_json_params();		
+		$json_data = $request->get_json_params();
+	//	print_r($json_data);
 		//NOKRI_API_ALLOW_EDITING
 		$mode = nokriAPI_allow_editing($request->get_method());
+		
 		if(isset($mode) && count($mode) > 0){return $mode;}	
 		if( !isset( $json_data ) && count($json_data) > 0 )
 		{
@@ -387,6 +389,7 @@ function nokri_get_register_custom_feildsApi($author_id = '',$feilds_for = '',$i
 			$data['auto_login'] = $autologin;
 			$data['profile_data'] = $profile_arr;
 			$response = array( 'success' => $success, 'data' => $data, 'message' => $message);	
+		//	print_r($response);die;
 			return $response;		
         
     }

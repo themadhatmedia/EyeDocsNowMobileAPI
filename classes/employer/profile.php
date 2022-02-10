@@ -12,7 +12,7 @@ function nokriAPI_employer_update_profile_hooks() {
             array(
                 'methods' => WP_REST_Server::READABLE,
                 'callback' => 'nokriAPI_employer_get_profile',
-                'permission_callback' => function () {
+               'permission_callback' => function () {
                     return nokriAPI_basic_auth();
                 },
             )
@@ -60,7 +60,18 @@ if (!function_exists('nokriAPI_employer_get_profile')) {
         }
 
 
-
+        $is_show_profile_option = (isset($nokriAPI['user_profile_setting_option_API']) && $nokriAPI['user_profile_setting_option_API']) ? true : false;
+        
+        $profile_dropdown_name = array("pub" => __("Public", "nokri-rest-api"), "priv" => __("Private", "nokri-rest-api"),
+        );
+        foreach ($profile_dropdown_name as $key => $value) {
+            $selected = ( $key == get_user_meta($user_id, '_user_profile_status', true) ) ? true : false;
+            $option[] = array(
+                "key" => $key,
+                "value" => esc_html($value),
+                "selected" => $selected
+            );
+        }
 
         $user_name = $user->data->display_name != '' ? $user->data->display_name : '';
         $user_email = $user->user_email != '' ? $user->user_email : '';
@@ -92,8 +103,14 @@ if (!function_exists('nokriAPI_employer_get_profile')) {
 
 
 
+ $m_web = __("Web:", "nokri-rest-api");
 
-        $info[] = nokriAPI_employer_fields(__("Company name", "nokri-rest-api"), $user_name, 'textfield', true, '', 'emp_name');
+        
+
+       
+
+
+        $info[] = nokriAPI_employer_fields(__("Name", "nokri-rest-api"), $user_name, 'textfield', true, '', 'emp_name');
         $info[] = nokriAPI_employer_fields(__("Email", "nokri-rest-api"), $user_email, 'textfield', true, '', 'emp_email');
         $info[] = nokriAPI_employer_fields(__("Phone", "nokri-rest-api"), $contact, 'textfield', true, '', 'emp_phone');
         $info[] = nokriAPI_employer_fields(__("Member Since", "nokri-rest-api"), date("M Y", strtotime($registered)), 'textfield', true, '', 'emp_rgstr');
@@ -101,6 +118,17 @@ if (!function_exists('nokriAPI_employer_get_profile')) {
         $info[] = nokriAPI_employer_fields(__("No. of Employees ", "nokri-rest-api"), $emp_no, 'textfield', true, '', 'emp_nos');
         $info[] = nokriAPI_employer_fields(__("Address", "nokri-rest-api"), $emp_map_location, 'textfield', true, '', 'emp_adress');
         $info[] = nokriAPI_employer_fields(__("About Company", "nokri-rest-api"), $emp_intro, 'textarea', true, '', 'about_me');
+        
+        $info[] = nokriAPI_employer_fields(__("Web", "nokri-rest-api"), $emp_web, 'textarea', true, '', 'emp_web');
+        
+        $mprofileimg = __("Profile Image:", "nokri-rest-api");
+        $info[] = nokriAPI_employer_fields($mprofileimg, nokriAPI_employer_dp($user_id), 'dropdown', true, 2, 'emp_dp');
+        
+        $mprofile = __("Set your profile:", "nokri-rest-api");
+        $info[] = nokriAPI_employer_fields($mprofile, $option, '', $is_show_profile_option, 2, 'emp_prof_stat');
+        
+        
+        
         $info[] = nokriAPI_employer_fields(__("Location & Map", "nokri-rest-api"), '', 'textfield', true, '', 'loc');
         $info[] = nokriAPI_employer_fields(__("Longitude", "nokri-rest-api"), $emp_map_long, 'textfield', true, '', 'emp_long');
         $info[] = nokriAPI_employer_fields(__("Latitude", "nokri-rest-api"), $emp_map_lat, 'textfield', true, '', 'emp_lat');
@@ -174,7 +202,7 @@ function nokriAPI_employer_edit_personal_info_hook() {
             'nokri/v1', '/employer/update_personal_info/', array(
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'nokriAPI_employer_update_personal_info',
-        'permission_callback' => function () {
+       'permission_callback' => function () {
             return nokriAPI_basic_auth();
         },
             )
@@ -220,8 +248,72 @@ if (!function_exists('nokriAPI_employer_update_personal_info')) {
         $emp_skills = (isset($json_data['emp_skills'])) ? trim($json_data['emp_skills']) : '';
         $emp_intro = (isset($json_data['emp_intro'])) ? trim($json_data['emp_intro']) : '';
         $emp_prof_stat = (isset($json_data['emp_prof_stat'])) ? trim($json_data['emp_prof_stat']) : '';
+        $emp_map_location= (isset($json_data['emp_map_location'])) ? trim($json_data['emp_map_location']) : '';
 
 
+      
+        $custom_filed = (isset($json_data['custom_fields'])) ? (array) ($json_data['custom_fields'] ) : array();
+
+
+        $request_from = nokriAPI_getSpecific_headerVal('Nokri-Request-From');
+
+
+
+        if ($request_from == 'ios') {
+            $custom_filed = json_decode(@$json_data['custom_fields'], true);
+        }
+
+        /* Updating Values In User Meta Of Current User */
+
+        if ($emp_name != "") {
+            wp_update_user(array('ID' => $user_id, 'display_name' => $emp_name));
+            
+        }
+
+        if ($emp_phone != '') {
+            update_user_meta($user_id, '_sb_contact', $emp_phone);
+        }
+        if ($emp_headline != '') {
+            update_user_meta($user_id, '_user_headline', $emp_headline);
+        }
+        
+            update_user_meta($user_id, '_emp_web', $emp_web);
+       
+        if (!empty($emp_skills)) {
+            update_user_meta($user_id, '_emp_skills', $emp_skills);
+        }
+        if ($emp_intro != '') {
+            update_user_meta($user_id, '_emp_intro', $emp_intro);
+        }
+        
+        if ($emp_map_location != '') {
+            update_user_meta($user_id, '_emp_map_location', $emp_map_location);
+        }
+
+        if ($is_show_profile_option) {
+            if ($emp_prof_stat != '') {
+                update_user_meta($user_id, '_user_profile_status', $emp_prof_stat);
+            }
+        } else {
+            update_user_meta($user_id, '_user_profile_status', 'pub');
+        }
+
+        if (isset($custom_filed) && count($custom_filed) > 0) {
+
+            foreach ($custom_filed as $key => $val) {
+                if (is_array($val)) {
+                    $dataArr = array();
+                    foreach ($val as $k)
+                        $dataArr[] = $k;
+                    $val = stripslashes(json_encode($dataArr, JSON_UNESCAPED_UNICODE));
+                }
+                $dataVal = ltrim($val, ",");
+
+                update_user_meta($user_id, $key, sanitize_text_field($val));
+            }
+        }
+        
+         $user = get_userdata($user_id);
         $m_name = __("Name:", "nokri-rest-api");
         $data[] = nokriAPI_employer_fields($m_name, @$user->display_name, 'textfield', true, 2, 'emp_name');
 
@@ -247,62 +339,11 @@ if (!function_exists('nokriAPI_employer_update_personal_info')) {
 
         $m_intro = __("About company:", "nokri-rest-api");
         $data[] = nokriAPI_employer_fields($m_intro, get_user_meta($user_id, '_emp_intro', true), 'textarea', true, 2, 'emp_intro');
-
-        $custom_filed = (isset($json_data['custom_fields'])) ? (array) ($json_data['custom_fields'] ) : array();
-
-
-        $request_from = nokriAPI_getSpecific_headerVal('Nokri-Request-From');
-
-
-
-        if ($request_from == 'ios') {
-            $custom_filed = json_decode(@$json_data['custom_fields'], true);
-        }
-
-        /* Updating Values In User Meta Of Current User */
-
-        if ($emp_name != "") {
-            wp_update_user(array('ID' => $user_id, 'display_name' => $emp_name));
-        }
-
-        if ($emp_phone != '') {
-            update_user_meta($user_id, '_sb_contact', $emp_phone);
-        }
-        if ($emp_headline != '') {
-            update_user_meta($user_id, '_user_headline', $emp_headline);
-        }
         
-            update_user_meta($user_id, '_emp_web', $emp_web);
-       
-        if (!empty($emp_skills)) {
-            update_user_meta($user_id, '_emp_skills', $emp_skills);
-        }
-        if ($emp_intro != '') {
-            update_user_meta($user_id, '_emp_intro', $emp_intro);
-        }
+        $m_address = __("Address:", "nokri-rest-api");
+        $data[] = nokriAPI_employer_fields($m_address, get_user_meta($user_id, '_emp_map_location', true), 'textarea', true, 2, 'emp_map_location');
 
-        if ($is_show_profile_option) {
-            if ($emp_prof_stat != '') {
-                update_user_meta($user_id, '_user_profile_status', $emp_prof_stat);
-            }
-        } else {
-            update_user_meta($user_id, '_user_profile_status', 'pub');
-        }
 
-        if (isset($custom_filed) && count($custom_filed) > 0) {
-
-            foreach ($custom_filed as $key => $val) {
-                if (is_array($val)) {
-                    $dataArr = array();
-                    foreach ($val as $k)
-                        $dataArr[] = $k;
-                    $val = stripslashes(json_encode($dataArr, JSON_UNESCAPED_UNICODE));
-                }
-                $dataVal = ltrim($val, ",");
-
-                update_user_meta($user_id, $key, sanitize_text_field($val));
-            }
-        }
 
         $extras[] = nokriAPI_canidate_fields('Section name', __("Personal Information", "nokri-rest-api"), '', '', 1, 'section_name');
         $extras[] = nokriAPI_canidate_fields('Button name', __("Save Information", "nokri-rest-api"), '', '', 1, 'btn_name');
@@ -334,9 +375,10 @@ if (!function_exists('nokriAPI_employer_update_personal_info')) {
 
             $custom_fields = array_merge($custom_filed_data, $custom_emp_filed_data);
         }
-
+    
 
         $response = array('success' => true, 'data' => $data, 'message' => __("Personal Information Updated.", "nokri-rest-api"), 'extras' => $extras, 'custom_fields' => $custom_fields);
+
 
         return $response;
     }
